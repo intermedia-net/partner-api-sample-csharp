@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9A42398A-C505-45CC-98A6-2EDB476924AD}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Hosting.PublicAPI.Sample</RootNamespace>
+    <AssemblyName>Hosting.PublicAPI.Sample</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <WarningsAsErrors>0108,0114,0628,0067,0649,0162,0809,0219,0429</WarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <WarningsAsErrors>0108,0114,0628,0067,0649,0162,0809,0219,0429</WarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.6.0.5\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="RestSharp">
+      <HintPath>..\packages\RestSharp.105.2.3\lib\net46\RestSharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="Thinktecture.IdentityModel.Client.Net45">
+      <HintPath>..\packages\Thinktecture.IdentityModel.Client.4.0.1\lib\net45\Thinktecture.IdentityModel.Client.Net45.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Generated\Api\AccountsApi.cs" />
+    <Compile Include="Generated\Api\AccountsApi.generated.cs" />
+    <Compile Include="Generated\Api\AccountsStateApi.cs" />
+    <Compile Include="Generated\Api\AccountsStateApi.generated.cs" />
+    <Compile Include="Generated\Invokers\ApiClient.generated.cs" />
+    <Compile Include="Generated\Invokers\ApiException.generated.cs" />
+    <Compile Include="Generated\Invokers\ApiResponse.generated.cs" />
+    <Compile Include="Generated\Invokers\Configuration.generated.cs" />
+    <Compile Include="Generated\Invokers\ExceptionFactory.generated.cs" />
+    <Compile Include="Generated\Invokers\IApiAccessor.generated.cs" />
+    <Compile Include="Models\AuthorizationServer\TokenModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\AccountCreateModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\AccountGeneralModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\AccountGetModel.cs" />
+    <Compile Include="Generated\Models\Accounts\AccountLeavingModel.generated.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\AccountTypeModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\Address\AddressModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\Company\CompanyModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\Contacts\ContactCreateModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\Contacts\ContactGetModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\Contacts\ContactModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\Limits\LimitModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\Limits\LimitUpdateModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\Msa\MsaModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\Payment\PaymentCreditCardModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\Payment\PaymentElectronicCheckModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\Payment\PaymentGetModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\Payment\PaymentModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\Payment\PaymentTypeModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\Plans\PlanGetModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\Plans\PlanUpdateModel.cs" />
+    <Compile Include="Generated\Models\Accounts\State\StateV1Model.generated.cs" />
+    <Compile Include="Models\ResourceServer\PageModel.cs" />
+    <Compile Include="Models\ResourceServer\PagingModel.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Generated\LICENSE.TXT" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
