@@ -15,5 +15,10 @@ namespace Hosting.PublicAPI.Sample.Models.ResourceServer.Accounts.Plans
         /// Gets or sets the plan pretty name.
         /// </summary>
         public string PrettyName { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether plan is current.
+        /// </summary>
+        public bool? IsCurrent { get; set; }
     }
 }
