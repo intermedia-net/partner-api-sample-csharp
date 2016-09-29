@@ -16,8 +16,8 @@ This sample provides an example of Intermedia Partner Public API usage.
 ## Official Documentation
 
 * [Intermedia knowledge base article](https://faq.intermedia.net/Article/23452)
-* [Swagger UI documentation](https://cp.qaserverdata.net/webservices/restapi/docs-ui/index)
-* [Swagger specification](https://cp.qaserverdata.net/webservices/restapi/docs/v1)
+* [Swagger UI documentation](https://cp.serverdata.net/webservices/restapi/docs-ui/index)
+* [Swagger specification](https://cp.serverdata.net/webservices/restapi/docs/v1)
 
 ## History
 

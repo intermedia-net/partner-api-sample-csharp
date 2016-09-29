@@ -8,6 +8,7 @@ namespace Hosting.PublicAPI.Sample
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
@@ -125,14 +126,13 @@ namespace Hosting.PublicAPI.Sample
         {
             try
             {
-                // entire async workflow is wrapped into separate handler
+                // Entire async workflow is wrapped into separate handler.
                 MainAsync().Wait();
                 Write("Demo completed.");
             }
             catch (Exception ex)
             {
-                // usually relevant exception should be extracted from AggregateException
-                // we try to extract it and print out
+                // Usually, relevant exception should be extracted from AggregateException.
                 Write(ExtractException(ex).ToString());
                 Write("\r\n\r\n");
             }
@@ -149,7 +149,7 @@ namespace Hosting.PublicAPI.Sample
         /// </returns>
         private static async Task MainAsync()
         {
-            // four sequential demo steps
+            // Four sequential demo steps
             await HandleTokensUsingHttpClient();
             await HandleTokensUsingOAuth2Client();
             var accountID = await HandleResourcesUsingHttpClient();
@@ -167,16 +167,16 @@ namespace Hosting.PublicAPI.Sample
         /// </returns>
         private static Exception ExtractException(Exception source)
         {
-            // other than AggregateException should be handled in a usual way
+            // All errors other than AggregateException should be handled in a standard way.
             if (!(source is AggregateException) || source.InnerException == null)
             {
                 return source;
             }
 
-            // the first meaningful thing should be here
+            // The first meaningful thing should be here:
             var innerException = source.InnerException;
 
-            // HTTP client timeout case - it can be work-arounded in a special way
+            // HTTP client timeout case - it can be work-arounded in a special way.
             var taskCanceledException = innerException as TaskCanceledException;
             if (taskCanceledException != null && 
                 !taskCanceledException.CancellationToken.IsCancellationRequested)
@@ -535,17 +535,17 @@ namespace Hosting.PublicAPI.Sample
         /// </returns>
         private static async Task<string> HandleResourcesUsingHttpClient()
         {
-            // in this scenario we work with Resouse Server using HttpClient
-            // consider official documentation https://cp.serverdata.net/webservices/RestAPI/docs-ui/index
+            // In this scenario we work with Resouse Server using HttpClient.
+            //   see the official documentation https://cp.serverdata.net/webservices/RestAPI/docs-ui/index
             
-            // the first thing we need is an active access token
-            // we create a new one here, but you should reuse one created before (and refresh it from time to time)
+            // The first thing we need is an active access token.
+            // We create a new one here, but you should reuse one created before (and refresh it as needed).
             Write("3. Demonstrating resource handling using HTTP client.\r\n");
             Write("Creating a token...");
             var token = await CreateTokenUsingOAuth2ClientAsync();
             Write($"The token was created:\r\n{Dump(token)}\r\n");
 
-            // we won't need token_type, expires_in and refresh_token for test purposes
+            // We do need token_type, expires_in and refresh_token for this demo.
             var accessToken = token.AccessToken;
             Write("Creating end-user account...");
             var account = await CreateEndUserAccount(accessToken);
@@ -568,7 +568,7 @@ namespace Hosting.PublicAPI.Sample
             var limit = await CreateAccountLimit(accessToken, accountID);
             Write($"The account limit was created:\r\n{Dump(limit)}\r\n\r\n");
 
-            // just for demo purposes
+            // Just for demo purposes
             Write("Revoking a token...");
             await RevokeTokenUsingOAuth2ClientAsync(token.RefreshToken);
             Write("The token was revoked.\r\n\r\n");
@@ -587,34 +587,37 @@ namespace Hosting.PublicAPI.Sample
         /// </returns>
         private static async Task<AccountGetModel> CreateEndUserAccount(string accessToken)
         {
-            // generate a lot of dummy data to create a new end-user account
+            // Generate a unique dummy name, to make sure there is no conflict with existing accounts.
             var userName = $"imqa-usrapi{CreateRandomString(12)}";
 
+            // Use Intermedia's HQ address - for demonstartion purposes only.
+            // Please use real enduser address, or your own legal address for real accounts.
             var address = new AddressModel
             {
                 Country = "United States",
                 State = "California",
-                City = "SunnyVale",
-                Street = "150 Mathilda Pl Ste 104",
-                Zip = "94086-6010"
+                City = "Mountain View",
+                Street = "825 E. Middlefield Rd",
+                Zip = "94043-4025"
             };
 
             var accountToCreate = new AccountCreateModel
             {
-                // type is an important item within this same
-                // 'cause partner account should be handled in different way in some points
+                // Account type is always 'EndUser' for regular partners. 
+                // You only need to specify 'Partner' when you craete sub-partners in Distributor model.
                 Type = AccountTypeModel.EndUser,
                 General = new AccountGeneralModel
                 {
-                    // credentials
+                    // Credentials:
                     UserName = userName,
-                    Password = "qwe123!@#",
+                    Password = $"{CreateRandomString(8)}_!@#",
 
-                    // you need to know the parent partner account id to create end-user account under it
-                    ParentAccountID = "0158A13EF5D74E2D8CCD34C0E87F5034",
+                    // In Distributor model, you have to specify the sub-parent partner account id, to create end-user account within its container. 
+                    // You do not need this in regular partner model - by default, end-user account are created in your container.
+                    // ParentAccountID = "0158A13EF5D74E2D8CCD34C0E87F5034",
 
-                    // account contact owner data
-                    Name = userName,
+                    // Account contact owner data:
+                    Name = $"Account Owner for {userName}",
                     Email = $"{userName}@qa.qa"
                 },
                 Company = new CompanyModel
@@ -628,6 +631,12 @@ namespace Hosting.PublicAPI.Sample
                     Name = userName,
                     Phone = "1234567890",
                     Address = address,
+                    Type = PaymentTypeModel.PaperCheck
+                    /*
+                    
+                    You should use credit cards only if you process end-user payments through Intermedia-provided payment processor.
+                    Please contact your Customer Service representative if you would like to set pone up.
+
                     Type = PaymentTypeModel.CreditCard,
                     CreditCard = new PaymentCreditCardModel
                     {
@@ -636,13 +645,15 @@ namespace Hosting.PublicAPI.Sample
                         ExpirationDate = "04/18",
                         SecurityCode = "111"
                     }
+                    */
                 },
 
-                // plan name is required for end-user account type
-                PlanName = "API_PL"
+                // Plan name is required for end-user account type. We use the most popular one here.
+                PlanName = "E2016_Exch_1"
             };
 
-            // consider https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_management/AccountsV1_PostAccount
+            // Please take a look at online documentaion:
+            // https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_management/AccountsV1_PostAccount
             return await CallUsingHttpClientAsync<AccountCreateModel, AccountGetModel>(
                 $"{ResourceServerEndpointAddress}/accounts",
                 HttpMethod.Post,
@@ -666,10 +677,11 @@ namespace Hosting.PublicAPI.Sample
             string accessToken, 
             string accountID)
         {
-            // please not that MSA can be accepted only once
+            // Please note that Master Service Agreemnet (MSA) can be accepted only once.
             var msaToAccept = new MsaModel { IsAccepted = true };
 
-            // consider http://localhost:6615/webservices/restapi/docs-ui/index#!/Account_Master_Service_Agreement/AccountMsaV1_PostMsa
+            // Please take a look at online documentaion: 
+            // https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_Master_Service_Agreement/AccountMsaV1_PostMsa
             await CallUsingHttpClientAsync<MsaModel, object>(
                 $"{ResourceServerEndpointAddress}/accounts/{accountID}/msa",
                 HttpMethod.Post,
@@ -693,10 +705,11 @@ namespace Hosting.PublicAPI.Sample
             string accessToken, 
             string accountID)
         {
-            // please note that your can't change the current plan to the same
+            // Please note that your can't change the current plan to the same plan.
             var planToChange = new PlanUpdateModel { Name = "IAM_PL" };
 
-            // consider http://localhost:6615/webservices/restapi/docs-ui/index#!/Account_billing_plans/AccountPlansV1_PostPlan
+            // Please take a look at online documentaion:
+            // https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_billing_plans/AccountPlansV1_PostPlan
             await CallUsingHttpClientAsync<PlanUpdateModel, object>(
                 $"{ResourceServerEndpointAddress}/accounts/{accountID}/plans",
                 HttpMethod.Post,
@@ -706,17 +719,17 @@ namespace Hosting.PublicAPI.Sample
             PlanGetModel currentPlan;
             do
             {
-                // due to current endpoint method implementation limitation polling is required
+                // Due to the API implementation specifics, polling is required.
                 Write("Waiting for the account plan change completion...");
                 Thread.Sleep(10000);
 
-                // consider http://localhost:6615/webservices/restapi/docs-ui/index#!/Account_billing_plans/AccountPlansV1_GetPlans
+                // See https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_billing_plans/AccountPlansV1_GetPlans
                 currentPlan = (await CallUsingHttpClientAsync<PageModel<PlanGetModel>>(
-                    $"{ResourceServerEndpointAddress}/accounts/{accountID}/plans?isCurrent=true&skip=0&take=1",
+                    $"{ResourceServerEndpointAddress}/accounts/{accountID}/plans",
                     HttpMethod.Get,
-                    accessToken)).Items[0];
+                    accessToken)).Items.Single(item => item.IsCurrent.Value);
 
-                // poll until current plan name was changed to the new one
+                // Poll until current plan name was changed to the new one.
             }
             while (currentPlan.Name != planToChange.Name);
         }
@@ -737,7 +750,7 @@ namespace Hosting.PublicAPI.Sample
             string accessToken, 
             string accountID)
         {
-            // generate dummy data to create a new end-user account contact
+            // Generate dummy data to create a new end-user account contact.
             var name = $"imqa-cntapi{CreateRandomString(16)}";
             var login = $"{name}@qa.qa";
             var contactToCreate = new ContactCreateModel
@@ -748,7 +761,9 @@ namespace Hosting.PublicAPI.Sample
                 AlternativeEmail = login,
                 Phone = "1234567890",
                 CellularPhone = "1234567890",
-                Password = "qwe123!@#",
+                Password = $"{CreateRandomString(8)}!@#",
+                
+                // For the full list of available roles, see https://FAQ.intermedia.net/Article/23265
                 AccessRoleNames = new[]
                 {
                     "ContactManager",
@@ -757,7 +772,7 @@ namespace Hosting.PublicAPI.Sample
                 }
             };
 
-            // consider http://localhost:6615/webservices/restapi/docs-ui/index#!/Account_contacts/AccountContactsV1_PostContact_0
+            // consider https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_contacts/AccountContactsV1_PostContact_0
             return await CallUsingHttpClientAsync<ContactCreateModel, ContactGetModel>(
                 $"{ResourceServerEndpointAddress}/accounts/{accountID}/contacts",
                 HttpMethod.Post,
@@ -781,15 +796,15 @@ namespace Hosting.PublicAPI.Sample
             string accessToken, 
             string accountID)
         {
-            // please note that limit name should be one of the defined on plan
-            // also there is separate method to update already overriden limit
+            // Note that limit name should a valid limit defined in the billing plan.
+            // Please use PUT method to update a previously configured limit.
             var limitToCreate = new LimitModel
             {
                 Name = "Iam_usersMax",
                 Value = 10m
             };
 
-            // consider http://localhost:6615/webservices/restapi/docs-ui/index#!/Account_limits_(applicable_to_end-user_accounts%2C_to_enforce_prepaid_billing_model)/AccountLimitsV1_PostLimit
+            // See https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_limits_(applicable_to_end-user_accounts%2C_to_enforce_prepaid_billing_model)/AccountLimitsV1_PostLimit
             return await CallUsingHttpClientAsync<LimitModel, LimitModel>(
                 $"{ResourceServerEndpointAddress}/accounts/{accountID}/limits",
                 HttpMethod.Post,
@@ -828,8 +843,8 @@ namespace Hosting.PublicAPI.Sample
             TRequest content)
             where TRequest : class
         {
-            // wrapper over generic method where request content should be sent as JSON
-            // we will use default conventions
+            // Wrapper over generic method where request content should be sent as JSON.
+            // We are using default conventions.
             var requestJson = JsonConvert.SerializeObject(
                 content,
                 Formatting.Indented,
@@ -872,7 +887,7 @@ namespace Hosting.PublicAPI.Sample
             string accessToken,
             HttpContent content = null)
         {
-            // another wrapper over generic method where response content should be read from JSON
+            // Another wrapper over generic method where response content should be read from JSON.
             var response = await CallUsingHttpClientAsync(uri, method, accessToken, content);
             var responseJson = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<TResponse>(responseJson);
@@ -972,11 +987,11 @@ namespace Hosting.PublicAPI.Sample
         /// </returns>
         private static async Task HandleResourcesUsingApiClient(string accountID)
         {
-            // in this scenario we work with Resouse Server using classes generated by Swagger Code Generator
-            // consider https://github.com/swagger-api/swagger-codegen
-            // and official documentation https://cp.serverdata.net/webservices/RestAPI/docs-ui/index
+            // In this scenario we work with Resouse Server using classes generated by Swagger Code Generator.
+            // Please refer to Swagger project at https://github.com/swagger-api/swagger-codegen
+            // and Swagger-generated API documentation at https://cp.serverdata.net/webservices/RestAPI/docs-ui/index
 
-            // again, we need an access token to work with API
+            // We need an access token to work with API.
             Write("4. Demonstrating resource handling using API client.\r\n");
             Write("Creating a token...");
             var token = await CreateTokenUsingOAuth2ClientAsync();
@@ -995,7 +1010,7 @@ namespace Hosting.PublicAPI.Sample
             await DeleteAccount(accessToken, accountID);
             Write("The account was deleted.\r\n");
 
-            // just for demo purposes
+            // Just for demo purposes.
             Write("Revoking a token...");
             await RevokeTokenUsingOAuth2ClientAsync(token.RefreshToken);
             Write("The token was revoked.\r\n\r\n");
@@ -1021,11 +1036,11 @@ namespace Hosting.PublicAPI.Sample
             string accountID,
             string accountState)
         {
-            // please note that the current state can't be changed to the same
+            // Please note that the state cannot be changed to the same state, i.e. enabled->enabled is not allowed.
             var stateToChange = new StateV1Model(accountState);
             var accountStateClient = CreateApiAccessor<AccountsStateApi>(accessToken);
 
-            // consider http://localhost:6615/webservices/restapi/docs-ui/index#!/Account_state_(enabled%2Fdisabled)/AccountStateV1_PostState
+            // See https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_state_(enabled%2Fdisabled)/AccountStateV1_PostState
             await accountStateClient.AccountStateV1PostStateAsync(
                 accountID,
                 stateToChange);
@@ -1033,15 +1048,15 @@ namespace Hosting.PublicAPI.Sample
             StateV1Model currentState;
             do
             {
-                // again, due to current endpoint method implementation limitation polling is required
+                // Due to the API implementation specifics, polling is required.
                 Console.WriteLine("Waiting for the account state change completion...");
                 Thread.Sleep(10000);
 
-                // consider http://localhost:6615/webservices/restapi/docs-ui/index#!/Account_state_(enabled%2Fdisabled)/AccountStateV1_GetState
+                // See https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_state_(enabled%2Fdisabled)/AccountStateV1_GetState
                 currentState = await accountStateClient
                     .AccountStateV1GetStateAsync(accountID);
 
-                // codegen also implements models equality
+                // Codegen also implements model equality through IEquatable interface.
             }
             while (!Equals(currentState, stateToChange));
         }
@@ -1062,8 +1077,8 @@ namespace Hosting.PublicAPI.Sample
             string accessToken, 
             string accountID)
         {
-            // account deletion is applicable only to end-user account type
-            // consider http://localhost:6615/webservices/restapi/docs-ui/index#!/Account_management/AccountsV1_DeleteAccount
+            // Account deletion is applicable only to end-user account type:
+            // https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_management/AccountsV1_DeleteAccount
             await CreateApiAccessor<AccountsApi>(accessToken)
                 .AccountsV1DeleteAccountAsync(
                     accountID, 
@@ -1086,13 +1101,13 @@ namespace Hosting.PublicAPI.Sample
         private static TApiAccessor CreateApiAccessor<TApiAccessor>(string accessToken)
             where TApiAccessor : IApiAccessor, new()
         {
-            // a generic method create api accessor generated by codegen
+            // A generic method create api accessor generated by codegen.
             const string AuthorizationHeaderKey = "Authorization";
 
-            // version suffix should be ommited in path
+            // Version suffix should be ommited in path.
             var configuration = new Configuration(new ApiClient(ResourceServerEndpointAddressBase));
 
-            // add 'Bearer' token authorization
+            // Add 'Bearer' token authorization.
             configuration.AddApiKeyPrefix(AuthorizationHeaderKey, "Bearer");
             configuration.AddApiKey(AuthorizationHeaderKey, accessToken);
 
