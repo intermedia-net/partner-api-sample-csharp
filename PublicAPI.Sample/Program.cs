@@ -9,7 +9,6 @@ namespace Hosting.PublicAPI.Sample
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Text;
@@ -54,7 +53,7 @@ namespace Hosting.PublicAPI.Sample
         /// The authorization server endpoint address.
         /// </summary>
         /// <remarks>
-        /// This one is implemented with 'grant_type' = 'password' and has version 'v1'.
+        /// This one is implemented with 'grant_type' = 'client_credentials' and has version 'v1'.
         /// </remarks>
         private const string AuthorizationServerEndpointAddress = EndpointAddressBase + "/auth/v1/token";
 
@@ -89,22 +88,6 @@ namespace Hosting.PublicAPI.Sample
         /// Please provide your Intermedia Partner Public API client secret.
         /// </remarks>
         private const string ClientSecret = "your_client_secret_here";
-
-        /// <summary>
-        /// The contact login.
-        /// </summary>
-        /// <remarks>
-        /// Please provide your Intermedia Partner Public API contact login.
-        /// </remarks>
-        private const string ContactLogin = "your_contact_login_here";
-
-        /// <summary>
-        /// The contact password.
-        /// </summary>
-        /// <remarks>
-        /// Please provide your Intermedia Partner Public API contact password.
-        /// </remarks>
-        private const string ContactPassword = "your_contact_password_here";
 
         /// <summary>
         /// The HTTP timeout.
@@ -149,7 +132,7 @@ namespace Hosting.PublicAPI.Sample
         /// </returns>
         private static async Task MainAsync()
         {
-            // Four sequential demo steps
+            // Four sequential demo steps.
             await HandleTokensUsingHttpClient();
             await HandleTokensUsingOAuth2Client();
             var accountID = await HandleResourcesUsingHttpClient();
@@ -178,7 +161,7 @@ namespace Hosting.PublicAPI.Sample
 
             // HTTP client timeout case - it can be work-arounded in a special way.
             var taskCanceledException = innerException as TaskCanceledException;
-            if (taskCanceledException != null && 
+            if (taskCanceledException != null &&
                 !taskCanceledException.CancellationToken.IsCancellationRequested)
             {
                 return new Exception("Request timeout");
@@ -199,31 +182,11 @@ namespace Hosting.PublicAPI.Sample
         /// </returns>
         private static async Task HandleTokensUsingHttpClient()
         {
-            // create a new token for the client
-            // usually you need to have only one of these per client consumer
-            // please consider enabled token limit / rotation:
-            // you can occasionally disable one of existent token of your client
+            // Create a new token for the client.
             Write("1. Demonstrating token handling using HTTP client.\r\n");
             Write("Creating a token...");
             var token = await CreateTokenUsingHttpClientAsync();
             Write($"The token was created:\r\n{Dump(token)}\r\n");
-
-            // refreshes an existent token
-            // you need to do this only when access token has expired
-            // please consider that refresh token can also expire if not used for a long time
-            // also refresh token can be intentionally revoked
-            // if so then you need to create a new token
-            Write("Refreshing a token...");
-            token = await RefreshTokenUsingHttpClientAsync(token.RefreshToken);
-            Write($"The token was refreshed:\r\n{Dump(token)}\r\n");
-
-            // revokes an existent token
-            // usually you don't need to do this, the cases are:
-            // 1. a leaked security token
-            // 2. you know that related token won't be used (refreshed) anymore
-            Write("Revoking a token...");
-            await RevokeTokenUsingHttpClientAsync(token.RefreshToken);
-            Write("The token was revoked.\r\n\r\n");
         }
 
         /// <summary>
@@ -234,89 +197,19 @@ namespace Hosting.PublicAPI.Sample
         /// </returns>
         private static async Task<TokenModel> CreateTokenUsingHttpClientAsync()
         {
-            // consider https://tools.ietf.org/html/rfc6749#section-4.3
-            return await CallTokenUsingHttpClientAsync(new Dictionary<string, string>
+            // Consider https://tools.ietf.org/html/rfc6749#section-4.4
+            var requestParameters = new Dictionary<string, string>
             {
-                // resource owner password credentials flow
-                { "grant_type", "password" },
+                // Client credentials credentials flow.
+                { "grant_type", "client_credentials" },
 
-                // authentication part, your client credentials
+                // Authentication part, your client credentials.
                 { "client_id", ClientID },
-                { "client_secret", ClientSecret },
+                { "client_secret", ClientSecret }
+            };
 
-                // authorication part, your contact credentials
-                { "username", ContactLogin },
-                { "password", ContactPassword }
-            });
-        }
-
-        /// <summary>
-        /// Refreshes token using HTTP client.
-        /// </summary>
-        /// <param name="refreshToken">
-        /// The refresh token.
-        /// </param>
-        /// <returns>
-        /// The token.
-        /// </returns>
-        private static async Task<TokenModel> RefreshTokenUsingHttpClientAsync(string refreshToken)
-        {
-            // consider https://tools.ietf.org/html/rfc6749#section-6
-            return await CallTokenUsingHttpClientAsync(new Dictionary<string, string>
-            {
-                // refreshing an token flow
-                { "grant_type", "refresh_token" },
-
-                // you still need to authenticate
-                { "client_id", ClientID },
-                { "client_secret", ClientSecret },
-
-                // token to refresh
-                { "refresh_token", refreshToken }
-            });
-        }
-
-        /// <summary>
-        /// Revokes token using HTTP client.
-        /// </summary>
-        /// <param name="refreshToken">
-        /// The refresh token.
-        /// </param>
-        /// <returns>
-        /// The task.
-        /// </returns>
-        private static async Task RevokeTokenUsingHttpClientAsync(string refreshToken)
-        {
-            // please note it's a custom extension
-            // consider https://tools.ietf.org/html/rfc6749#section-4.5
-            await CallUsingHttpClientAsync(new Dictionary<string, string>
-            {
-                // revoking an token flow
-                { "grant_type", "revoke_token" },
-
-                // you still need to authenticate
-                { "client_id", ClientID },
-                { "client_secret", ClientSecret },
-
-                // token to revoke
-                { "refresh_token", refreshToken }
-            });
-        }
-
-        /// <summary>
-        /// Calls token using HTTP client.
-        /// </summary>
-        /// <param name="requestParameters">
-        /// The request parameters.
-        /// </param>
-        /// <returns>
-        /// The token.
-        /// </returns>
-        private static async Task<TokenModel> CallTokenUsingHttpClientAsync(
-            IDictionary<string, string> requestParameters)
-        {
-            // it's a wrapper for 'password' and 'refresh_token' grant types
-            // which return new token within content and we must parse it
+            // It's a wrapper for 'client_credentials' grant type
+            // which return new token within content and we must parse it.
             var response = await CallUsingHttpClientAsync(requestParameters);
             var responseJson = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<TokenModel>(responseJson);
@@ -334,24 +227,19 @@ namespace Hosting.PublicAPI.Sample
         private static async Task<HttpResponseMessage> CallUsingHttpClientAsync(
             IDictionary<string, string> requestParameters)
         {
-            // call an Authorization Server endpoint using the HttpClient
+            // Call an Authorization Server endpoint using the HttpClient.
             using (var client = new HttpClient { Timeout = HttpTimeout })
             {
-                // all Authorization Server calls must be done using 'POST' HTTP verb
-                // request content must be provided in 'application/x-www-form-urlencoded' MIME type
-                // please note that you can authenticate (pass client_id and client_secret) using Basic Authentication
-                // consider https://tools.ietf.org/html/rfc2617
+                // All Authorization Server calls must be done using 'POST' HTTP verb.
+                // Request content must be provided in 'application/x-www-form-urlencoded' MIME type.
+                // Please note that you can authenticate (pass client_id and client_secret) using Basic Authentication.
+                // Consider https://tools.ietf.org/html/rfc2617
                 var response = await client.PostAsync(
                     AuthorizationServerEndpointAddress,
                     new FormUrlEncodedContent(requestParameters));
-                response.EnsureSuccessStatusCode();
 
-                // 'password' and 'refresh_token' grant types return token within content
-                // 'revoke_token' grant type returns 204 No Content
-                if (response.Content != null)
-                {
-                    await response.Content.LoadIntoBufferAsync();
-                }
+                response.EnsureSuccessStatusCode();
+                await response.Content.LoadIntoBufferAsync();
 
                 return response;
             }
@@ -369,21 +257,13 @@ namespace Hosting.PublicAPI.Sample
         /// </returns>
         private static async Task HandleTokensUsingOAuth2Client()
         {
-            // the workflow is absolutely the same as in demo #1
-            // the only difference is that we use Thinktecture.IdentityModel Client
-            // consider https://github.com/IdentityServer
+            // The workflow is absolutely the same as in demo #1.
+            // The only difference is that we use Thinktecture.IdentityModel Client.
+            // Consider https://github.com/IdentityServer
             Write("2. Demonstrating token handling using OAUTH2 client.\r\n");
             Write("Creating a token...");
             var token = await CreateTokenUsingOAuth2ClientAsync();
             Write($"The token was created:\r\n{Dump(token)}\r\n");
-
-            Write("Refreshing a token...");
-            token = await RefreshTokenUsingOAuth2ClientAsync(token.RefreshToken);
-            Write($"The token was refreshed:\r\n{Dump(token)}\r\n");
-
-            Write("Revoking a token...");
-            await RevokeTokenUsingOAuth2ClientAsync(token.RefreshToken);
-            Write("The token was revoked.\r\n\r\n");
         }
 
         /// <summary>
@@ -394,81 +274,16 @@ namespace Hosting.PublicAPI.Sample
         /// </returns>
         private static async Task<TokenModel> CreateTokenUsingOAuth2ClientAsync()
         {
-            // a special method to call the endpoint with a 'grant_type' = 'password'
-            return await CallTokenUsingOAuth2ClientAsync(client => 
-                client.RequestResourceOwnerPasswordAsync(
-                    ContactLogin,
-                    ContactPassword));
-        }
-
-        /// <summary>
-        /// Refreshes token using OAUTH2 client.
-        /// </summary>
-        /// <param name="refreshToken">
-        /// The refresh token.
-        /// </param>
-        /// <returns>
-        /// The token.
-        /// </returns>
-        private static async Task<TokenModel> RefreshTokenUsingOAuth2ClientAsync(string refreshToken)
-        {
-            // a special method to call the endpoint with a 'grant_type' = 'refresh_token'
-            return await CallTokenUsingOAuth2ClientAsync(client =>
-                client.RequestRefreshTokenAsync(refreshToken));
-        }
-
-        /// <summary>
-        /// Revokes token using OAUTH2 client.
-        /// </summary>
-        /// <param name="refreshToken">
-        /// The refresh token.
-        /// </param>
-        /// <returns>
-        /// The task.
-        /// </returns>
-        private static async Task RevokeTokenUsingOAuth2ClientAsync(string refreshToken)
-        {
-            // here we call the endpoint with a custom grant type
             var response = await CallUsingOAuth2ClientAsync(client =>
-                client.RequestCustomAsync(new Dictionary<string, string>
-                    {
-                        { "grant_type", "revoke_token" },
-                        { "refresh_token", refreshToken }
-                    }));
+                client.RequestClientCredentialsAsync());
 
-            // actually, 'grant_type' = 'revoke_token' doesn't return a new token
-            // and client will treat this case result as an error
-            // so we work-around it
-            if (!response.IsHttpError || response.HttpErrorStatusCode != HttpStatusCode.NoContent)
-            {
-                CheckOAuth2ClientError(response);
-            }
-        }
-
-        /// <summary>
-        /// Calls token using OAUTH2 client.
-        /// </summary>
-        /// <param name="callToken">
-        /// The call token function.
-        /// </param>
-        /// <returns>
-        /// The token.
-        /// </returns>
-        private static async Task<TokenModel> CallTokenUsingOAuth2ClientAsync(
-            Func<OAuth2Client, Task<TokenResponse>> callToken)
-        {
-            var response = await CallUsingOAuth2ClientAsync(callToken);
-
-            // it's a wrapper for 'password' and 'refresh_token' grant types
-            // which return new token and we must use it
             CheckOAuth2ClientError(response);
 
             return new TokenModel
             {
                 TokenType = response.TokenType,
                 ExpiresIn = response.ExpiresIn,
-                AccessToken = response.AccessToken,
-                RefreshToken = response.RefreshToken
+                AccessToken = response.AccessToken
             };
         }
 
@@ -484,7 +299,7 @@ namespace Hosting.PublicAPI.Sample
         private static async Task<TokenResponse> CallUsingOAuth2ClientAsync(
             Func<OAuth2Client, Task<TokenResponse>> call)
         {
-            // call an Authorization Server endpoint using Thinktecture.IdentityModel.Client.OAuth2Client
+            // Call an Authorization Server endpoint using Thinktecture.IdentityModel.Client.OAuth2Client.
             var client = new OAuth2Client(
                 new Uri(AuthorizationServerEndpointAddress),
                 ClientID,
@@ -504,13 +319,13 @@ namespace Hosting.PublicAPI.Sample
         /// </param>
         private static void CheckOAuth2ClientError(TokenResponse response)
         {
-            // we check two types of errors in client
+            // We check two types of errors in client.
             if (response.IsError)
             {
-                // the HTTP error has priority
+                // The HTTP error has priority.
                 if (response.IsHttpError)
                 {
-                    // basically, HttpClient does the same thing in EnsureSuccessStatusCode method
+                    // Basically, HttpClient does the same thing in EnsureSuccessStatusCode method.
                     throw new HttpRequestException(
                         string.Format(
                             "Response status code does not indicate success: {0} ({1})",
@@ -518,7 +333,7 @@ namespace Hosting.PublicAPI.Sample
                             response.HttpErrorReason));
                 }
 
-                // something went totally wrong
+                // Something went totally wrong.
                 throw new Exception(response.Error);
             }
         }
@@ -536,16 +351,15 @@ namespace Hosting.PublicAPI.Sample
         private static async Task<string> HandleResourcesUsingHttpClient()
         {
             // In this scenario we work with Resouse Server using HttpClient.
-            //   see the official documentation https://cp.serverdata.net/webservices/RestAPI/docs-ui/index
-            
+            // See the official documentation https://cp.serverdata.net/webservices/RestAPI/docs-ui/index
+
             // The first thing we need is an active access token.
-            // We create a new one here, but you should reuse one created before (and refresh it as needed).
             Write("3. Demonstrating resource handling using HTTP client.\r\n");
             Write("Creating a token...");
             var token = await CreateTokenUsingOAuth2ClientAsync();
             Write($"The token was created:\r\n{Dump(token)}\r\n");
 
-            // We do need token_type, expires_in and refresh_token for this demo.
+            // We don't need token_type and expires_in for this demo.
             var accessToken = token.AccessToken;
             Write("Creating end-user account...");
             var account = await CreateEndUserAccount(accessToken);
@@ -567,11 +381,6 @@ namespace Hosting.PublicAPI.Sample
             Write("Creating an account limit...");
             var limit = await CreateAccountLimit(accessToken, accountID);
             Write($"The account limit was created:\r\n{Dump(limit)}\r\n\r\n");
-
-            // Just for demo purposes
-            Write("Revoking a token...");
-            await RevokeTokenUsingOAuth2ClientAsync(token.RefreshToken);
-            Write("The token was revoked.\r\n\r\n");
 
             return accountID;
         }
@@ -604,7 +413,7 @@ namespace Hosting.PublicAPI.Sample
             var accountToCreate = new AccountCreateModel
             {
                 // Account type is always 'EndUser' for regular partners. 
-                // You only need to specify 'Partner' when you craete sub-partners in Distributor model.
+                // You only need to specify 'Partner' when you create sub-partners in Distributor model.
                 Type = AccountTypeModel.EndUser,
                 General = new AccountGeneralModel
                 {
@@ -635,7 +444,7 @@ namespace Hosting.PublicAPI.Sample
                     /*
                     
                     You should use credit cards only if you process end-user payments through Intermedia-provided payment processor.
-                    Please contact your Customer Service representative if you would like to set pone up.
+                    Please contact your Customer Service representative if you would like to set one up.
 
                     Type = PaymentTypeModel.CreditCard,
                     CreditCard = new PaymentCreditCardModel
@@ -648,11 +457,12 @@ namespace Hosting.PublicAPI.Sample
                     */
                 },
 
-                // Plan name is required for end-user account type. We use the most popular one here.
+                // Plan name is required for end-user account type. 
+                // We use the most popular one here.
                 PlanName = "E2016_Exch_1"
             };
 
-            // Please take a look at online documentaion:
+            // Please take a look at online documentation:
             // https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_management/AccountsV1_PostAccount
             return await CallUsingHttpClientAsync<AccountCreateModel, AccountGetModel>(
                 $"{ResourceServerEndpointAddress}/accounts",
@@ -674,13 +484,13 @@ namespace Hosting.PublicAPI.Sample
         /// The task.
         /// </returns>
         private static async Task AcceptAccountMsa(
-            string accessToken, 
+            string accessToken,
             string accountID)
         {
             // Please note that Master Service Agreemnet (MSA) can be accepted only once.
             var msaToAccept = new MsaModel { IsAccepted = true };
 
-            // Please take a look at online documentaion: 
+            // Please take a look at online documentation: 
             // https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_Master_Service_Agreement/AccountMsaV1_PostMsa
             await CallUsingHttpClientAsync<MsaModel, object>(
                 $"{ResourceServerEndpointAddress}/accounts/{accountID}/msa",
@@ -702,13 +512,13 @@ namespace Hosting.PublicAPI.Sample
         /// The task.
         /// </returns>
         private static async Task ChangeAccountPlan(
-            string accessToken, 
+            string accessToken,
             string accountID)
         {
             // Please note that your can't change the current plan to the same plan.
             var planToChange = new PlanUpdateModel { Name = "IAM_PL" };
 
-            // Please take a look at online documentaion:
+            // Please take a look at online documentation:
             // https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_billing_plans/AccountPlansV1_PostPlan
             await CallUsingHttpClientAsync<PlanUpdateModel, object>(
                 $"{ResourceServerEndpointAddress}/accounts/{accountID}/plans",
@@ -747,7 +557,7 @@ namespace Hosting.PublicAPI.Sample
         /// The account contact.
         /// </returns>
         private static async Task<ContactGetModel> CreateAccountContact(
-            string accessToken, 
+            string accessToken,
             string accountID)
         {
             // Generate dummy data to create a new end-user account contact.
@@ -762,7 +572,7 @@ namespace Hosting.PublicAPI.Sample
                 Phone = "1234567890",
                 CellularPhone = "1234567890",
                 Password = $"{CreateRandomString(8)}!@#",
-                
+
                 // For the full list of available roles, see https://FAQ.intermedia.net/Article/23265
                 AccessRoleNames = new[]
                 {
@@ -772,7 +582,7 @@ namespace Hosting.PublicAPI.Sample
                 }
             };
 
-            // consider https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_contacts/AccountContactsV1_PostContact_0
+            // Consider https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_contacts/AccountContactsV1_PostContact_0
             return await CallUsingHttpClientAsync<ContactCreateModel, ContactGetModel>(
                 $"{ResourceServerEndpointAddress}/accounts/{accountID}/contacts",
                 HttpMethod.Post,
@@ -793,7 +603,7 @@ namespace Hosting.PublicAPI.Sample
         /// The account limit.
         /// </returns>
         private static async Task<LimitModel> CreateAccountLimit(
-            string accessToken, 
+            string accessToken,
             string accountID)
         {
             // Note that limit name should a valid limit defined in the billing plan.
@@ -850,8 +660,8 @@ namespace Hosting.PublicAPI.Sample
                 Formatting.Indented,
                 new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             var requestContent = new StringContent(
-                requestJson, 
-                Encoding.UTF8, 
+                requestJson,
+                Encoding.UTF8,
                 "application/json");
             return await CallUsingHttpClientAsync<TResponse>(
                 uri,
@@ -917,15 +727,15 @@ namespace Hosting.PublicAPI.Sample
             string accessToken,
             HttpContent content = null)
         {
-            // general method to call Resource Server endpoint using HttpClient
+            // General method to call Resource Server endpoint using HttpClient.
             using (var client = new HttpClient { Timeout = HttpTimeout })
             {
                 var request = CreateHttpClientRequest(uri, method, accessToken, content);
                 var response = await client.SendAsync(request);
                 response.EnsureSuccessStatusCode();
 
-                // response content should be read only for related messages
-                // i.e. probably, 200 OK will have some content in body
+                // Response content should be read only for related messages
+                // i.e. probably, 200 OK will have some content in body.
                 if (response.Content != null)
                 {
                     await response.Content.LoadIntoBufferAsync();
@@ -961,7 +771,7 @@ namespace Hosting.PublicAPI.Sample
         {
             var request = new HttpRequestMessage(method, uri);
 
-            // setup Bearer token authorization
+            // Detup Bearer token authorization.
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
             if (content != null)
@@ -1009,11 +819,6 @@ namespace Hosting.PublicAPI.Sample
             Write("Deleting an account...");
             await DeleteAccount(accessToken, accountID);
             Write("The account was deleted.\r\n");
-
-            // Just for demo purposes.
-            Write("Revoking a token...");
-            await RevokeTokenUsingOAuth2ClientAsync(token.RefreshToken);
-            Write("The token was revoked.\r\n\r\n");
         }
 
         /// <summary>
@@ -1036,7 +841,7 @@ namespace Hosting.PublicAPI.Sample
             string accountID,
             string accountState)
         {
-            // Please note that the state cannot be changed to the same state, i.e. enabled->enabled is not allowed.
+            // Please note that the state cannot be changed to the same state, i.e. enabled -> enabled is not allowed.
             var stateToChange = new StateV1Model(accountState);
             var accountStateClient = CreateApiAccessor<AccountsStateApi>(accessToken);
 
@@ -1074,15 +879,15 @@ namespace Hosting.PublicAPI.Sample
         /// The task.
         /// </returns>
         private static async Task DeleteAccount(
-            string accessToken, 
+            string accessToken,
             string accountID)
         {
             // Account deletion is applicable only to end-user account type:
             // https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_management/AccountsV1_DeleteAccount
             await CreateApiAccessor<AccountsApi>(accessToken)
                 .AccountsV1DeleteAccountAsync(
-                    accountID, 
-                    "Demo reason", 
+                    accountID,
+                    "Demo reason",
                     "Demo comments");
         }
 
@@ -1141,7 +946,7 @@ namespace Hosting.PublicAPI.Sample
         private static string Dump(object @object)
         {
             return JsonConvert.SerializeObject(
-                @object, 
+                @object,
                 Formatting.Indented);
         }
 

@@ -33,11 +33,5 @@ namespace Hosting.PublicAPI.Sample.Models.AuthorizationServer
         /// </summary>
         [JsonProperty("access_token")]
         public string AccessToken { get; set; }
-
-        /// <summary>
-        /// Gets or sets the refresh token value.
-        /// </summary>
-        [JsonProperty("refresh_token")]
-        public string RefreshToken { get; set; }
     }
 }
