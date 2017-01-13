@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="AccountTypeModel.cs" company="Intermedia">
-//   Copyright © Intermedia.net, Inc. 1995 - 2016. All Rights Reserved.
+//   Copyright © Intermedia.net, Inc. 1995 - 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ namespace Hosting.PublicAPI.Sample.Models.ResourceServer.Accounts
         /// <summary>
         /// The end-user account.
         /// </summary>
-        [EnumMember(Value = "endUser")]
-        EndUser
+        [EnumMember(Value = "account")]
+        Account
     }
 }

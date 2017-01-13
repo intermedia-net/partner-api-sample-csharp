@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="PlanUpdateModel.cs" company="Intermedia">
-//   Copyright © Intermedia.net, Inc. 1995 - 2016. All Rights Reserved.
+//   Copyright © Intermedia.net, Inc. 1995 - 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 

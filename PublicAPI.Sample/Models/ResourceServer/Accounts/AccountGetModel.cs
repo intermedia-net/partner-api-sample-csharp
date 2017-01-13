@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="AccountGetModel.cs" company="Intermedia">
-//   Copyright © Intermedia.net, Inc. 1995 - 2016. All Rights Reserved.
+//   Copyright © Intermedia.net, Inc. 1995 - 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -19,9 +19,9 @@ namespace Hosting.PublicAPI.Sample.Models.ResourceServer.Accounts
         public AccountTypeModel Type { get; set; }
 
         /// <summary>
-        /// Gets or sets the account id.
+        /// Gets or sets the customer id.
         /// </summary>
-        public string AccountID { get; set; }
+        public string CustomerID { get; set; }
 
         /// <summary>
         /// Gets or sets the user name.

@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="Program.cs" company="Intermedia">
-//   Copyright © Intermedia.net, Inc. 1995 - 2016. All Rights Reserved.
+//   Copyright © Intermedia.net, Inc. 1995 - 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ namespace Hosting.PublicAPI.Sample
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-
+    
     using Generated.Api;
     using Generated.Invokers;
     using Generated.Models.Accounts.State;
@@ -135,8 +135,8 @@ namespace Hosting.PublicAPI.Sample
             // Four sequential demo steps.
             await HandleTokensUsingHttpClient();
             await HandleTokensUsingOAuth2Client();
-            var accountID = await HandleResourcesUsingHttpClient();
-            await HandleResourcesUsingApiClient(accountID);
+            var customerID = await HandleResourcesUsingHttpClient();
+            await HandleResourcesUsingApiClient(customerID);
         }
 
         /// <summary>
@@ -362,27 +362,27 @@ namespace Hosting.PublicAPI.Sample
             // We don't need token_type and expires_in for this demo.
             var accessToken = token.AccessToken;
             Write("Creating end-user account...");
-            var account = await CreateEndUserAccount(accessToken);
-            Write($"The end-user account was created:\r\n{Dump(account)}\r\n");
+            var customer = await CreateEndUserAccount(accessToken);
+            Write($"The end-user account was created:\r\n{Dump(customer)}\r\n");
 
-            var accountID = account.AccountID;
+            var customerID = customer.CustomerID;
             Write("Accepting account MSA...");
-            await AcceptAccountMsa(accessToken, accountID);
+            await AcceptAccountMsa(accessToken, customerID);
             Write("The account MSA was accepted.\r\n");
 
             Write("Changing account plan...");
-            await ChangeAccountPlan(accessToken, accountID);
+            await ChangeAccountPlan(accessToken, customerID);
             Write("The account plan was changed.\r\n");
 
             Write("Creating an account contact...");
-            var contact = await CreateAccountContact(accessToken, accountID);
+            var contact = await CreateCustomerContact(accessToken, customerID);
             Write($"The account contact was created:\r\n{Dump(contact)}\r\n");
 
             Write("Creating an account limit...");
-            var limit = await CreateAccountLimit(accessToken, accountID);
+            var limit = await CreateAccountLimit(accessToken, customerID);
             Write($"The account limit was created:\r\n{Dump(limit)}\r\n\r\n");
 
-            return accountID;
+            return customerID;
         }
 
         /// <summary>
@@ -398,6 +398,7 @@ namespace Hosting.PublicAPI.Sample
         {
             // Generate a unique dummy name, to make sure there is no conflict with existing accounts.
             var userName = $"imqa-usrapi{CreateRandomString(12)}";
+            var login = $"imqa-usrapi@{userName}.com";
 
             // Use Intermedia's HQ address - for demonstartion purposes only.
             // Please use real enduser address, or your own legal address for real accounts.
@@ -414,11 +415,13 @@ namespace Hosting.PublicAPI.Sample
             {
                 // Account type is always 'EndUser' for regular partners. 
                 // You only need to specify 'Partner' when you create sub-partners in Distributor model.
-                Type = AccountTypeModel.EndUser,
+                Type = AccountTypeModel.Account,
                 General = new AccountGeneralModel
                 {
-                    // Credentials:
                     UserName = userName,
+
+                    // Credentials:
+                    Login = login,
                     Password = $"{CreateRandomString(8)}_!@#",
 
                     // In Distributor model, you have to specify the sub-parent partner account id, to create end-user account within its container. 
@@ -516,7 +519,7 @@ namespace Hosting.PublicAPI.Sample
             string accountID)
         {
             // Please note that your can't change the current plan to the same plan.
-            var planToChange = new PlanUpdateModel { Name = "IAM_PL" };
+            var planToChange = new PlanUpdateModel { Name = "E2016_Exch_1_EMAIL" };
 
             // Please take a look at online documentation:
             // https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_billing_plans/AccountPlansV1_PostPlan
@@ -537,7 +540,7 @@ namespace Hosting.PublicAPI.Sample
                 currentPlan = (await CallUsingHttpClientAsync<PageModel<PlanGetModel>>(
                     $"{ResourceServerEndpointAddress}/accounts/{accountID}/plans",
                     HttpMethod.Get,
-                    accessToken)).Items.Single(item => item.IsCurrent.Value);
+                    accessToken)).Items.Single(item => item.IsCurrent.GetValueOrDefault());
 
                 // Poll until current plan name was changed to the new one.
             }
@@ -545,20 +548,20 @@ namespace Hosting.PublicAPI.Sample
         }
 
         /// <summary>
-        /// Creates account contact.
+        /// Creates customer contact.
         /// </summary>
         /// <param name="accessToken">
         /// The access token.
         /// </param>
-        /// <param name="accountID">
-        /// The account id.
+        /// <param name="customerID">
+        /// The customer id.
         /// </param>
         /// <returns>
-        /// The account contact.
+        /// The customer contact.
         /// </returns>
-        private static async Task<ContactGetModel> CreateAccountContact(
+        private static async Task<ContactGetModel> CreateCustomerContact(
             string accessToken,
-            string accountID)
+            string customerID)
         {
             // Generate dummy data to create a new end-user account contact.
             var name = $"imqa-cntapi{CreateRandomString(16)}";
@@ -584,7 +587,7 @@ namespace Hosting.PublicAPI.Sample
 
             // Consider https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_contacts/AccountContactsV1_PostContact_0
             return await CallUsingHttpClientAsync<ContactCreateModel, ContactGetModel>(
-                $"{ResourceServerEndpointAddress}/accounts/{accountID}/contacts",
+                $"{ResourceServerEndpointAddress}/accounts/{customerID}/contacts",
                 HttpMethod.Post,
                 accessToken,
                 contactToCreate);
@@ -789,13 +792,13 @@ namespace Hosting.PublicAPI.Sample
         /// <summary>
         /// Demonstrates resource handling using API client.
         /// </summary>
-        /// <param name="accountID">
-        /// The existent account id.
+        /// <param name="customerID">
+        /// The existent customer id.
         /// </param>
         /// <returns>
         /// The task.
         /// </returns>
-        private static async Task HandleResourcesUsingApiClient(string accountID)
+        private static async Task HandleResourcesUsingApiClient(string customerID)
         {
             // In this scenario we work with Resouse Server using classes generated by Swagger Code Generator.
             // Please refer to Swagger project at https://github.com/swagger-api/swagger-codegen
@@ -809,15 +812,15 @@ namespace Hosting.PublicAPI.Sample
 
             var accessToken = token.AccessToken;
             Write("Disabling an account...");
-            await ChangeAccountState(accessToken, accountID, "disabled");
+            await ChangeAccountState(accessToken, customerID, "disabled");
             Write("The account was disabled.\r\n");
 
             Write("Enabling an account...");
-            await ChangeAccountState(accessToken, accountID, "enabled");
+            await ChangeAccountState(accessToken, customerID, "enabled");
             Write("The account was enabled.\r\n");
 
             Write("Deleting an account...");
-            await DeleteAccount(accessToken, accountID);
+            await DeleteAccount(accessToken, customerID);
             Write("The account was deleted.\r\n");
         }
 
