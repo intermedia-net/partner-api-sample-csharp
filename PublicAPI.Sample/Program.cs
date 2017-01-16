@@ -135,8 +135,8 @@ namespace Hosting.PublicAPI.Sample
             // Four sequential demo steps.
             await HandleTokensUsingHttpClient();
             await HandleTokensUsingOAuth2Client();
-            var customerID = await HandleResourcesUsingHttpClient();
-            await HandleResourcesUsingApiClient(customerID);
+            var accountID = await HandleResourcesUsingHttpClient();
+            await HandleResourcesUsingApiClient(accountID);
         }
 
         /// <summary>
@@ -361,40 +361,40 @@ namespace Hosting.PublicAPI.Sample
 
             // We don't need token_type and expires_in for this demo.
             var accessToken = token.AccessToken;
-            Write("Creating end-user account...");
-            var customer = await CreateEndUserAccount(accessToken);
-            Write($"The end-user account was created:\r\n{Dump(customer)}\r\n");
+            Write("Creating account...");
+            var customer = await CreateAccount(accessToken);
+            Write($"The account was created:\r\n{Dump(customer)}\r\n");
 
-            var customerID = customer.CustomerID;
-            Write("Accepting account MSA...");
-            await AcceptAccountMsa(accessToken, customerID);
-            Write("The account MSA was accepted.\r\n");
+            var accountID = customer.CustomerID;
+            Write("Accepting Master Service Agreement...");
+            await AcceptMasterServiceAgreement(accessToken, accountID);
+            Write("The Master Service Agreement was accepted.\r\n");
 
-            Write("Changing account plan...");
-            await ChangeAccountPlan(accessToken, customerID);
-            Write("The account plan was changed.\r\n");
+            Write("Changing billing plan...");
+            await ChangeBillingPlan(accessToken, accountID);
+            Write("The billing plan was changed.\r\n");
 
             Write("Creating an account contact...");
-            var contact = await CreateCustomerContact(accessToken, customerID);
+            var contact = await CreateAccountContact(accessToken, accountID);
             Write($"The account contact was created:\r\n{Dump(contact)}\r\n");
 
             Write("Creating an account limit...");
-            var limit = await CreateAccountLimit(accessToken, customerID);
+            var limit = await CreateAccountLimit(accessToken, accountID);
             Write($"The account limit was created:\r\n{Dump(limit)}\r\n\r\n");
 
-            return customerID;
+            return accountID;
         }
 
         /// <summary>
-        /// Creates end-user account.
+        /// Creates account.
         /// </summary>
         /// <param name="accessToken">
         /// The access token.
         /// </param>
         /// <returns>
-        /// The end-user account.
+        /// The account.
         /// </returns>
-        private static async Task<AccountGetModel> CreateEndUserAccount(string accessToken)
+        private static async Task<AccountGetModel> CreateAccount(string accessToken)
         {
             // Generate a unique dummy name, to make sure there is no conflict with existing accounts.
             var userName = $"imqa-usrapi{CreateRandomString(12)}";
@@ -413,7 +413,7 @@ namespace Hosting.PublicAPI.Sample
 
             var accountToCreate = new AccountCreateModel
             {
-                // Account type is always 'EndUser' for regular partners. 
+                // Type is always 'Account' for regular partners. 
                 // You only need to specify 'Partner' when you create sub-partners in Distributor model.
                 Type = AccountTypeModel.Account,
                 General = new AccountGeneralModel
@@ -424,9 +424,9 @@ namespace Hosting.PublicAPI.Sample
                     Login = login,
                     Password = $"{CreateRandomString(8)}_!@#",
 
-                    // In Distributor model, you have to specify the sub-parent partner account id, to create end-user account within its container. 
-                    // You do not need this in regular partner model - by default, end-user account are created in your container.
-                    // ParentAccountID = "0158A13EF5D74E2D8CCD34C0E87F5034",
+                    // In Distributor model, you have to specify the sub-parent partner customer id, to create account within its container. 
+                    // You do not need this in regular partner model - by default, accounts are created in your container.
+                    // ParentCustomerID = "0158A13EF5D74E2D8CCD34C0E87F5034",
 
                     // Account contact owner data:
                     Name = $"Account Owner for {userName}",
@@ -446,7 +446,7 @@ namespace Hosting.PublicAPI.Sample
                     Type = PaymentTypeModel.PaperCheck
                     /*
                     
-                    You should use credit cards only if you process end-user payments through Intermedia-provided payment processor.
+                    You should use credit cards only if you process account payments through Intermedia-provided payment processor.
                     Please contact your Customer Service representative if you would like to set one up.
 
                     Type = PaymentTypeModel.CreditCard,
@@ -460,7 +460,7 @@ namespace Hosting.PublicAPI.Sample
                     */
                 },
 
-                // Plan name is required for end-user account type. 
+                // Plan name is required for account type. 
                 // We use the most popular one here.
                 PlanName = "E2016_Exch_1"
             };
@@ -475,7 +475,7 @@ namespace Hosting.PublicAPI.Sample
         }
 
         /// <summary>
-        /// Accept account MSA.
+        /// Accept MSA.
         /// </summary>
         /// <param name="accessToken">
         /// The access token.
@@ -486,7 +486,7 @@ namespace Hosting.PublicAPI.Sample
         /// <returns>
         /// The task.
         /// </returns>
-        private static async Task AcceptAccountMsa(
+        private static async Task AcceptMasterServiceAgreement(
             string accessToken,
             string accountID)
         {
@@ -503,7 +503,7 @@ namespace Hosting.PublicAPI.Sample
         }
 
         /// <summary>
-        /// Changes account plan.
+        /// Changes billing plan.
         /// </summary>
         /// <param name="accessToken">
         /// The access token.
@@ -514,7 +514,7 @@ namespace Hosting.PublicAPI.Sample
         /// <returns>
         /// The task.
         /// </returns>
-        private static async Task ChangeAccountPlan(
+        private static async Task ChangeBillingPlan(
             string accessToken,
             string accountID)
         {
@@ -548,22 +548,22 @@ namespace Hosting.PublicAPI.Sample
         }
 
         /// <summary>
-        /// Creates customer contact.
+        /// Creates account contact.
         /// </summary>
         /// <param name="accessToken">
         /// The access token.
         /// </param>
-        /// <param name="customerID">
-        /// The customer id.
+        /// <param name="accountID">
+        /// The account id.
         /// </param>
         /// <returns>
         /// The customer contact.
         /// </returns>
-        private static async Task<ContactGetModel> CreateCustomerContact(
+        private static async Task<ContactGetModel> CreateAccountContact(
             string accessToken,
-            string customerID)
+            string accountID)
         {
-            // Generate dummy data to create a new end-user account contact.
+            // Generate dummy data to create a new account contact.
             var name = $"imqa-cntapi{CreateRandomString(16)}";
             var login = $"{name}@qa.qa";
             var contactToCreate = new ContactCreateModel
@@ -587,7 +587,7 @@ namespace Hosting.PublicAPI.Sample
 
             // Consider https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_contacts/AccountContactsV1_PostContact_0
             return await CallUsingHttpClientAsync<ContactCreateModel, ContactGetModel>(
-                $"{ResourceServerEndpointAddress}/accounts/{customerID}/contacts",
+                $"{ResourceServerEndpointAddress}/accounts/{accountID}/contacts",
                 HttpMethod.Post,
                 accessToken,
                 contactToCreate);
@@ -792,13 +792,13 @@ namespace Hosting.PublicAPI.Sample
         /// <summary>
         /// Demonstrates resource handling using API client.
         /// </summary>
-        /// <param name="customerID">
-        /// The existent customer id.
+        /// <param name="accountID">
+        /// The existent account id.
         /// </param>
         /// <returns>
         /// The task.
         /// </returns>
-        private static async Task HandleResourcesUsingApiClient(string customerID)
+        private static async Task HandleResourcesUsingApiClient(string accountID)
         {
             // In this scenario we work with Resouse Server using classes generated by Swagger Code Generator.
             // Please refer to Swagger project at https://github.com/swagger-api/swagger-codegen
@@ -812,15 +812,15 @@ namespace Hosting.PublicAPI.Sample
 
             var accessToken = token.AccessToken;
             Write("Disabling an account...");
-            await ChangeAccountState(accessToken, customerID, "disabled");
+            await ChangeAccountState(accessToken, accountID, "disabled");
             Write("The account was disabled.\r\n");
 
             Write("Enabling an account...");
-            await ChangeAccountState(accessToken, customerID, "enabled");
+            await ChangeAccountState(accessToken, accountID, "enabled");
             Write("The account was enabled.\r\n");
 
             Write("Deleting an account...");
-            await DeleteAccount(accessToken, customerID);
+            await DeleteAccount(accessToken, accountID);
             Write("The account was deleted.\r\n");
         }
 
@@ -885,7 +885,7 @@ namespace Hosting.PublicAPI.Sample
             string accessToken,
             string accountID)
         {
-            // Account deletion is applicable only to end-user account type:
+            // Account deletion is applicable only to account type:
             // https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_management/AccountsV1_DeleteAccount
             await CreateApiAccessor<AccountsApi>(accessToken)
                 .AccountsV1DeleteAccountAsync(
