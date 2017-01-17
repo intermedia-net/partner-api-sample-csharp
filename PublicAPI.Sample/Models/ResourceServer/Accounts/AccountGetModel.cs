@@ -14,9 +14,9 @@ namespace Hosting.PublicAPI.Sample.Models.ResourceServer.Accounts
     internal sealed class AccountGetModel
     {
         /// <summary>
-        /// Gets or sets the account type.
+        /// Gets or sets the account programs.
         /// </summary>
-        public AccountTypeModel Type { get; set; }
+        public AccountProgramModel[] Programs { get; set; }
 
         /// <summary>
         /// Gets or sets the customer id.

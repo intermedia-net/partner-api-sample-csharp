@@ -413,9 +413,9 @@ namespace Hosting.PublicAPI.Sample
 
             var accountToCreate = new AccountCreateModel
             {
-                // Type is always 'Account' for regular partners. 
+                // Program is always 'Account' for regular partners. 
                 // You only need to specify 'Partner' when you create sub-partners in Distributor model.
-                Type = AccountTypeModel.Account,
+                Programs = new [] { AccountProgramModel.Account },
                 General = new AccountGeneralModel
                 {
                     UserName = userName,
@@ -460,7 +460,7 @@ namespace Hosting.PublicAPI.Sample
                     */
                 },
 
-                // Plan name is required for account type. 
+                // Plan name is required for account program. 
                 // We use the most popular one here.
                 PlanName = "E2016_Exch_1"
             };

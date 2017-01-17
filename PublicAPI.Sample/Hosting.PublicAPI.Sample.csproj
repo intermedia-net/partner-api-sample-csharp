@@ -74,7 +74,7 @@
     <Compile Include="Models\ResourceServer\Accounts\AccountGeneralModel.cs" />
     <Compile Include="Models\ResourceServer\Accounts\AccountGetModel.cs" />
     <Compile Include="Generated\Models\Accounts\AccountLeavingModel.generated.cs" />
-    <Compile Include="Models\ResourceServer\Accounts\AccountTypeModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\AccountProgramModel.cs" />
     <Compile Include="Models\ResourceServer\Accounts\Address\AddressModel.cs" />
     <Compile Include="Models\ResourceServer\Accounts\Company\CompanyModel.cs" />
     <Compile Include="Models\ResourceServer\Accounts\Contacts\ContactCreateModel.cs" />
