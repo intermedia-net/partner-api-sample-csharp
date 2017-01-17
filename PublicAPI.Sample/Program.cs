@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="Program.cs" company="Intermedia">
-//   Copyright © Intermedia.net, Inc. 1995 - 2016. All Rights Reserved.
+//   Copyright © Intermedia.net, Inc. 1995 - 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ namespace Hosting.PublicAPI.Sample
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-
+    
     using Generated.Api;
     using Generated.Invokers;
     using Generated.Models.Accounts.State;
@@ -361,18 +361,18 @@ namespace Hosting.PublicAPI.Sample
 
             // We don't need token_type and expires_in for this demo.
             var accessToken = token.AccessToken;
-            Write("Creating end-user account...");
-            var account = await CreateEndUserAccount(accessToken);
-            Write($"The end-user account was created:\r\n{Dump(account)}\r\n");
+            Write("Creating account...");
+            var customer = await CreateAccount(accessToken);
+            Write($"The account was created:\r\n{Dump(customer)}\r\n");
 
-            var accountID = account.AccountID;
-            Write("Accepting account MSA...");
-            await AcceptAccountMsa(accessToken, accountID);
-            Write("The account MSA was accepted.\r\n");
+            var accountID = customer.CustomerID;
+            Write("Accepting Master Service Agreement...");
+            await AcceptMasterServiceAgreement(accessToken, accountID);
+            Write("The Master Service Agreement was accepted.\r\n");
 
-            Write("Changing account plan...");
-            await ChangeAccountPlan(accessToken, accountID);
-            Write("The account plan was changed.\r\n");
+            Write("Changing billing plan...");
+            await ChangeBillingPlan(accessToken, accountID);
+            Write("The billing plan was changed.\r\n");
 
             Write("Creating an account contact...");
             var contact = await CreateAccountContact(accessToken, accountID);
@@ -386,18 +386,19 @@ namespace Hosting.PublicAPI.Sample
         }
 
         /// <summary>
-        /// Creates end-user account.
+        /// Creates account.
         /// </summary>
         /// <param name="accessToken">
         /// The access token.
         /// </param>
         /// <returns>
-        /// The end-user account.
+        /// The account.
         /// </returns>
-        private static async Task<AccountGetModel> CreateEndUserAccount(string accessToken)
+        private static async Task<AccountGetModel> CreateAccount(string accessToken)
         {
             // Generate a unique dummy name, to make sure there is no conflict with existing accounts.
             var userName = $"imqa-usrapi{CreateRandomString(12)}";
+            var login = $"imqa-usrapi@{userName}.com";
 
             // Use Intermedia's HQ address - for demonstartion purposes only.
             // Please use real enduser address, or your own legal address for real accounts.
@@ -412,18 +413,20 @@ namespace Hosting.PublicAPI.Sample
 
             var accountToCreate = new AccountCreateModel
             {
-                // Account type is always 'EndUser' for regular partners. 
+                // Program is always 'Account' for regular partners. 
                 // You only need to specify 'Partner' when you create sub-partners in Distributor model.
-                Type = AccountTypeModel.EndUser,
+                Programs = new [] { AccountProgramModel.Account },
                 General = new AccountGeneralModel
                 {
-                    // Credentials:
                     UserName = userName,
+
+                    // Credentials:
+                    Login = login,
                     Password = $"{CreateRandomString(8)}_!@#",
 
-                    // In Distributor model, you have to specify the sub-parent partner account id, to create end-user account within its container. 
-                    // You do not need this in regular partner model - by default, end-user account are created in your container.
-                    // ParentAccountID = "0158A13EF5D74E2D8CCD34C0E87F5034",
+                    // In Distributor model, you have to specify the sub-parent partner customer id, to create account within its container. 
+                    // You do not need this in regular partner model - by default, accounts are created in your container.
+                    // ParentCustomerID = "0158A13EF5D74E2D8CCD34C0E87F5034",
 
                     // Account contact owner data:
                     Name = $"Account Owner for {userName}",
@@ -443,7 +446,7 @@ namespace Hosting.PublicAPI.Sample
                     Type = PaymentTypeModel.PaperCheck
                     /*
                     
-                    You should use credit cards only if you process end-user payments through Intermedia-provided payment processor.
+                    You should use credit cards only if you process account payments through Intermedia-provided payment processor.
                     Please contact your Customer Service representative if you would like to set one up.
 
                     Type = PaymentTypeModel.CreditCard,
@@ -457,7 +460,7 @@ namespace Hosting.PublicAPI.Sample
                     */
                 },
 
-                // Plan name is required for end-user account type. 
+                // Plan name is required for account program. 
                 // We use the most popular one here.
                 PlanName = "E2016_Exch_1"
             };
@@ -472,7 +475,7 @@ namespace Hosting.PublicAPI.Sample
         }
 
         /// <summary>
-        /// Accept account MSA.
+        /// Accept MSA.
         /// </summary>
         /// <param name="accessToken">
         /// The access token.
@@ -483,7 +486,7 @@ namespace Hosting.PublicAPI.Sample
         /// <returns>
         /// The task.
         /// </returns>
-        private static async Task AcceptAccountMsa(
+        private static async Task AcceptMasterServiceAgreement(
             string accessToken,
             string accountID)
         {
@@ -500,7 +503,7 @@ namespace Hosting.PublicAPI.Sample
         }
 
         /// <summary>
-        /// Changes account plan.
+        /// Changes billing plan.
         /// </summary>
         /// <param name="accessToken">
         /// The access token.
@@ -511,12 +514,12 @@ namespace Hosting.PublicAPI.Sample
         /// <returns>
         /// The task.
         /// </returns>
-        private static async Task ChangeAccountPlan(
+        private static async Task ChangeBillingPlan(
             string accessToken,
             string accountID)
         {
             // Please note that your can't change the current plan to the same plan.
-            var planToChange = new PlanUpdateModel { Name = "IAM_PL" };
+            var planToChange = new PlanUpdateModel { Name = "E2016_Exch_1_EMAIL" };
 
             // Please take a look at online documentation:
             // https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_billing_plans/AccountPlansV1_PostPlan
@@ -537,7 +540,7 @@ namespace Hosting.PublicAPI.Sample
                 currentPlan = (await CallUsingHttpClientAsync<PageModel<PlanGetModel>>(
                     $"{ResourceServerEndpointAddress}/accounts/{accountID}/plans",
                     HttpMethod.Get,
-                    accessToken)).Items.Single(item => item.IsCurrent.Value);
+                    accessToken)).Items.Single(item => item.IsCurrent.GetValueOrDefault());
 
                 // Poll until current plan name was changed to the new one.
             }
@@ -554,13 +557,13 @@ namespace Hosting.PublicAPI.Sample
         /// The account id.
         /// </param>
         /// <returns>
-        /// The account contact.
+        /// The customer contact.
         /// </returns>
         private static async Task<ContactGetModel> CreateAccountContact(
             string accessToken,
             string accountID)
         {
-            // Generate dummy data to create a new end-user account contact.
+            // Generate dummy data to create a new account contact.
             var name = $"imqa-cntapi{CreateRandomString(16)}";
             var login = $"{name}@qa.qa";
             var contactToCreate = new ContactCreateModel
@@ -882,7 +885,7 @@ namespace Hosting.PublicAPI.Sample
             string accessToken,
             string accountID)
         {
-            // Account deletion is applicable only to end-user account type:
+            // Account deletion is applicable only to account type:
             // https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_management/AccountsV1_DeleteAccount
             await CreateApiAccessor<AccountsApi>(accessToken)
                 .AccountsV1DeleteAccountAsync(

@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="AccountGeneralModel.cs" company="Intermedia">
-//   Copyright © Intermedia.net, Inc. 1995 - 2016. All Rights Reserved.
+//   Copyright © Intermedia.net, Inc. 1995 - 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -15,6 +15,11 @@ namespace Hosting.PublicAPI.Sample.Models.ResourceServer.Accounts
         /// Gets or sets the account user name.
         /// </summary>
         public string UserName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the login.
+        /// </summary>
+        public string Login { get; set; }
 
         /// <summary>
         /// Gets or sets the account password.
