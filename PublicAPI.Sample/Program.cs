@@ -397,8 +397,8 @@ namespace Hosting.PublicAPI.Sample
         private static async Task<AccountGetModel> CreateAccount(string accessToken)
         {
             // Generate a unique dummy name, to make sure there is no conflict with existing accounts.
-            var userName = $"imqa-usrapi{CreateRandomString(12)}";
-            var login = $"imqa-usrapi@{userName}.com";
+            var accountName = $"imqa-api{CreateRandomString(4)}";
+            var login = $"imqa-api@{accountName}.com";
 
             // Use Intermedia's HQ address - for demonstartion purposes only.
             // Please use real enduser address, or your own legal address for real accounts.
@@ -418,7 +418,7 @@ namespace Hosting.PublicAPI.Sample
                 Programs = new[] { AccountProgramModel.Account },
                 General = new AccountGeneralModel
                 {
-                    UserName = userName,
+                    AccountName = accountName,
 
                     // Account owner, the contact who has full access to account.
                     Owner = new AccountOwnerModel
@@ -436,20 +436,20 @@ namespace Hosting.PublicAPI.Sample
                             // ParentCustomerID = "0158A13EF5D74E2D8CCD34C0E87F5034",
 
                             // Account contact owner data:
-                            Name = $"Account Owner for {userName}",
-                            Email = $"{userName}@qa.qa"
+                            Name = $"Account Owner for {accountName}",
+                            Email = $"{accountName}@qa.qa"
                         }
                     }
                 },
                 Company = new CompanyModel
                 {
-                    Name = userName,
+                    Name = accountName,
                     Phone = "1234567890",
                     Address = address
                 },
                 Payment = new PaymentModel
                 {
-                    Name = userName,
+                    Name = accountName,
                     Phone = "1234567890",
                     Address = address,
                     Type = PaymentTypeModel.PaperCheck

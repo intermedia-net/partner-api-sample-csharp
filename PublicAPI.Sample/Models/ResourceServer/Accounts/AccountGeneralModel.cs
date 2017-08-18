@@ -12,9 +12,9 @@ namespace Hosting.PublicAPI.Sample.Models.ResourceServer.Accounts
     internal sealed class AccountGeneralModel
     {
         /// <summary>
-        /// Gets or sets the account user name.
+        /// Gets or sets the account name.
         /// </summary>
-        public string UserName { get; set; }
+        public string AccountName { get; set; }
 
         /// <summary>
         /// Gets or sets the account parent account id.
