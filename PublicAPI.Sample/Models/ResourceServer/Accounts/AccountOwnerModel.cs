@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="AccountGeneralModel.cs" company="Intermedia">
+// <copyright file="AccountOwnerModel.cs" company="Intermedia">
 //   Copyright © Intermedia.net, Inc. 1995 - 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -7,23 +7,18 @@
 namespace Hosting.PublicAPI.Sample.Models.ResourceServer.Accounts
 {
     /// <summary>
-    /// The account general model.
+    /// The account owner model.
     /// </summary>
-    internal sealed class AccountGeneralModel
+    public sealed class AccountOwnerModel
     {
         /// <summary>
-        /// Gets or sets the account user name.
+        /// Gets or sets the contact id.
         /// </summary>
-        public string UserName { get; set; }
+        public string ContactID { get; set; }
 
         /// <summary>
-        /// Gets or sets the account parent account id.
+        /// Gets or sets the contact.
         /// </summary>
-        public string ParentAccountID { get; set; }
-
-        /// <summary>
-        /// Gets or sets the account owner contact.
-        /// </summary>
-        public AccountOwnerModel Owner { get; set; }
+        public AccountOwnerCreateModel Contact { get; set; }
     }
 }
