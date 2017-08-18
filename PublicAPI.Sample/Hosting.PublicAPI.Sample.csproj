@@ -74,12 +74,15 @@
     <Compile Include="Models\ResourceServer\Accounts\AccountGeneralModel.cs" />
     <Compile Include="Models\ResourceServer\Accounts\AccountGetModel.cs" />
     <Compile Include="Generated\Models\Accounts\AccountLeavingModel.generated.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\AccountOwnerCreateModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\AccountOwnerModel.cs" />
     <Compile Include="Models\ResourceServer\Accounts\AccountProgramModel.cs" />
     <Compile Include="Models\ResourceServer\Accounts\Address\AddressModel.cs" />
     <Compile Include="Models\ResourceServer\Accounts\Company\CompanyModel.cs" />
     <Compile Include="Models\ResourceServer\Accounts\Contacts\ContactCreateModel.cs" />
     <Compile Include="Models\ResourceServer\Accounts\Contacts\ContactGetModel.cs" />
     <Compile Include="Models\ResourceServer\Accounts\Contacts\ContactModel.cs" />
+    <Compile Include="Models\ResourceServer\Accounts\Contacts\ContactModelBase.cs" />
     <Compile Include="Models\ResourceServer\Accounts\Limits\LimitModel.cs" />
     <Compile Include="Models\ResourceServer\Accounts\Limits\LimitUpdateModel.cs" />
     <Compile Include="Models\ResourceServer\Accounts\Msa\MsaModel.cs" />

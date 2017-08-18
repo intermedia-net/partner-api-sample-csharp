@@ -415,22 +415,31 @@ namespace Hosting.PublicAPI.Sample
             {
                 // Program is always 'Account' for regular partners. 
                 // You only need to specify 'Partner' when you create sub-partners in Distributor model.
-                Programs = new [] { AccountProgramModel.Account },
+                Programs = new[] { AccountProgramModel.Account },
                 General = new AccountGeneralModel
                 {
                     UserName = userName,
 
-                    // Credentials:
-                    Login = login,
-                    Password = $"{CreateRandomString(8)}_!@#",
+                    // Account owner, the contact who has full access to account.
+                    Owner = new AccountOwnerModel
+                    {
+                        // Create new account contact.
+                        // Existent ContactID can be used instead.
+                        Contact = new AccountOwnerCreateModel
+                        {
+                            // Credentials:
+                            Login = login,
+                            Password = $"{CreateRandomString(8)}_!@#",
 
-                    // In Distributor model, you have to specify the sub-parent partner customer id, to create account within its container. 
-                    // You do not need this in regular partner model - by default, accounts are created in your container.
-                    // ParentCustomerID = "0158A13EF5D74E2D8CCD34C0E87F5034",
+                            // In Distributor model, you have to specify the sub-parent partner customer id, to create account within its container. 
+                            // You do not need this in regular partner model - by default, accounts are created in your container.
+                            // ParentCustomerID = "0158A13EF5D74E2D8CCD34C0E87F5034",
 
-                    // Account contact owner data:
-                    Name = $"Account Owner for {userName}",
-                    Email = $"{userName}@qa.qa"
+                            // Account contact owner data:
+                            Name = $"Account Owner for {userName}",
+                            Email = $"{userName}@qa.qa"
+                        }
+                    }
                 },
                 Company = new CompanyModel
                 {
@@ -617,7 +626,7 @@ namespace Hosting.PublicAPI.Sample
                 Value = 10m
             };
 
-            // See https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_limits_(applicable_to_end-user_accounts%2C_to_enforce_prepaid_billing_model)/AccountLimitsV1_PostLimit
+            // See https://cp.serverdata.net/webservices/restapi/docs-ui/index#!/Account_limits_(end-user_accounts%2C_to_enforce_prepaid_billing_model)/AccountLimitsV1_PostLimit
             return await CallUsingHttpClientAsync<LimitModel, LimitModel>(
                 $"{ResourceServerEndpointAddress}/accounts/{accountID}/limits",
                 HttpMethod.Post,
